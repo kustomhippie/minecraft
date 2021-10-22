@@ -1,0 +1,45 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - service.yml
+  - servicemonitor.yml
+  - pvc.yml
+  - deployment.yml
+
+configMapGenerator:
+  - name: minecraft-server
+    options:
+      labels:
+        app.kubernetes.io/name: minecraft
+        app.kubernetes.io/component: server
+    literals:
+      - MINECRAFT_ENABLE_QUERY=true
+  - name: minecraft-metrics
+    options:
+      labels:
+        app.kubernetes.io/name: minecraft
+        app.kubernetes.io/component: server
+    literals:
+      - RCON_ADDRESS=localhost:25575
+      - NAME_SOURCE=mojang
+
+secretGenerator:
+  - name: minecraft-server
+    options:
+      labels:
+        app.kubernetes.io/name: minecraft
+        app.kubernetes.io/component: server
+    literals:
+      - rcon=p455w0rd
+
+images:
+  - name: minecraft-server
+    newName: quay.io/webhippie/minecraft-vanilla
+    newTag: "latest"
+  - name: minecraft-metrics
+    newName: ghcr.io/dirien/minecraft-exporter
+    newTag: "0.6.0-amd64"
+
+...

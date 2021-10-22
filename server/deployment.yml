@@ -1,0 +1,129 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: minecraft-server
+  labels:
+    app.kubernetes.io/name: minecraft
+    app.kubernetes.io/component: server
+
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+
+  strategy:
+    type: Recreate
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: minecraft
+      app.kubernetes.io/component: server
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: minecraft
+        app.kubernetes.io/component: server
+
+    spec:
+      enableServiceLinks: false
+
+      containers:
+        - name: server
+          image: minecraft-server
+          imagePullPolicy: Always
+
+          env:
+            - name: MINECRAFT_RCON_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minecraft-server
+                  key: rcon
+
+          envFrom:
+            - configMapRef:
+                name: minecraft-server
+
+          ports:
+            - name: server
+              containerPort: 25565
+              protocol: TCP
+            - name: rcon
+              containerPort: 25575
+              protocol: TCP
+
+          startupProbe:
+            failureThreshold: 30
+            periodSeconds: 10
+            exec:
+              command:
+                - /usr/bin/healthcheck
+
+          livenessProbe:
+            exec:
+              command:
+                - /usr/bin/healthcheck
+
+          readinessProbe:
+            exec:
+              command:
+                - /usr/bin/healthcheck
+
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/minecraft
+
+        - name: metrics
+          image: minecraft-metrics
+          imagePullPolicy: Always
+
+          args:
+            - --mc.world=/var/lib/minecraft/world
+            - --mc.rcon-address=$(RCON_ADDRESS)
+            - --mc.rcon-password=$(RCON_PASSWORD)
+            - --mc.name-source=$(NAME_SOURCE)
+
+          env:
+            - name: RCON_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minecraft-server
+                  key: rcon
+
+          envFrom:
+            - configMapRef:
+                name: minecraft-metrics
+
+          ports:
+            - name: metrics
+              containerPort: 9150
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: metrics
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: metrics
+
+          resources:
+            limits:
+              cpu: "0.1"
+              memory: "64Mi"
+            requests:
+              cpu: "0.1"
+              memory: "64Mi"
+
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/minecraft
+
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: minecraft-server
+
+...

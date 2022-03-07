@@ -40,6 +40,6 @@ images:
     newTag: "latest"
   - name: minecraft-metrics
     newName: ghcr.io/dirien/minecraft-exporter
-    newTag: "0.6.0-amd64"
+    newTag: "0.12.0-amd64"
 
 ...

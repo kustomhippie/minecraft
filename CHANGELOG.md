@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/kustomhippie/minecraft/compare/v2.0.0...v2.1.0) (2023-08-21)
+
+
+### Features
+
+* **deps:** update ghcr.io/dirien/minecraft-exporter docker tag to v0.19.0 ([d877847](https://github.com/kustomhippie/minecraft/commit/d877847fc0bf0dc8e68d28d3bd3e3f433c314ba6))
+
 ## [2.0.0](https://github.com/kustomhippie/minecraft/compare/v1.0.0...v2.0.0) (2023-07-17)
 
 
